@@ -1,3 +1,4 @@
+# coding: utf-8
 include Math
 require './Matrix.rb'
 require './MatrixUtils.rb'
@@ -38,7 +39,17 @@ module Utils
     puts %x[rm #{tempfile}]
   end
 
+  def self.format_compyled_code(code)
+    code = code.gsub(",)", ", nil)")
+    code = code.gsub("None", "nil")
+    code = code.gsub("(", "[")
+    code = code.gsub(")", "]")
+    return eval(code) #¯\_(ツ)_/¯
+  end
+
   def self.parse_file(filename: $INFILE)
+    puts %x[python compyler/main.py #{filename}]
+
     file = File.new(filename, "r")
     while (line = file.gets)
       line = line.chomp #Kill trailing newline

@@ -50,9 +50,10 @@ module Utils
   def self.parse_file(filename: $INFILE)
     puts %x[python compyler/main.py #{filename}]
 
-    file = File.new('__COMPYLED_CODE__', "r")
+    file = File.new($COMPYLED_CODE_LOC, "r")
     code = format_compyled_code(file.gets)
     file.close
+    puts %x[rm #$COMPYLED_CODE_LOC]
 
     for line in code[0]
       puts "Executing: " + line.to_s if $DEBUGGING

@@ -58,3 +58,8 @@ build-iPhoneSimulator/
 
 # Emacs backups
 ~*
+
+
+# Compyler Files
+*.pyc
+__COMPYLED_CODE__

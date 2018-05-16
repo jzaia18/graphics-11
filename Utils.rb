@@ -50,13 +50,27 @@ module Utils
   def self.parse_file(filename: $INFILE)
     puts %x[python compyler/main.py #{filename}]
 
-    file = File.new(filename, "r")
-    while (line = file.gets)
-      line = line.chomp #Kill trailing newline
-      puts "Executing command: \"" + line + '"' if $DEBUGGING
-      case line
+    file = File.new('__COMPYLED_CODE__', "r")
+    code = format_compyled_code(file.gets)
+    file.close
+
+    for line in code[0]
+      puts "Executing: " + line.to_s if $DEBUGGING
+      case line[0]
       when "line"
-        args = file.gets.chomp.split(" ")
+        if line[1].class == String #Down the rabbit hole
+          if line[5].class == String
+            args = line[2..4] + line[6..8]
+          else
+            args = line[2..7]
+          end
+        else
+          if line[4].class == String
+            args = line[1..3] + line[5..7]
+          else
+            args = line[1..6]
+          end
+        end
         for i in (0...6); args[i] = args[i].to_f end
         puts "With arguments: "  + args.to_s if $DEBUGGING
         temp = Matrix.new(4,0)
@@ -64,32 +78,12 @@ module Utils
         temp.add_col([args[3], args[4], args[5], 1])
         MatrixUtils.multiply($COORDSYS.peek(), temp)
         Draw.push_edge_matrix(temp)
-      when "circle"
-        args = file.gets.chomp.split(" ")
-        for i in (0...4); args[i] = args[i].to_f end
-        puts "With arguments: "  + args.to_s if $DEBUGGING
-        temp = Matrix.new(4, 0)
-        Draw.circle(args[0], args[1], args[2], args[3], temp)
-        MatrixUtils.multiply($COORDSYS.peek(), temp)
-        Draw.push_edge_matrix(temp)
-      when "hermite"
-        args = file.gets.chomp.split(" ")
-        for i in (0...8); args[i] = args[i].to_f end
-        puts "With arguments: "  + args.to_s if $DEBUGGING
-        temp = Matrix.new(4, 0)
-        Draw.hermite(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], temp)
-        MatrixUtils.multiply($COORDSYS.peek(), temp)
-        Draw.push_edge_matrix(temp)
-      when "bezier"
-        args = file.gets.chomp.split(" ")
-        for i in (0...8); args[i] = args[i].to_f end
-        puts "With arguments: "  + args.to_s if $DEBUGGING
-        temp = Matrix.new(4, 0)
-        Draw.bezier(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], temp)
-        MatrixUtils.multiply($COORDSYS.peek(), temp)
-        Draw.push_edge_matrix(temp)
       when "box"
-        args = file.gets.chomp.split(" ")
+        if line[1].class == String
+          args = line[2..7]
+        else
+          args = line[1..6]
+        end
         for i in (0...6); args[i] = args[i].to_f end
         puts "With arguments: "  + args.to_s if $DEBUGGING
         temp = Matrix.new(4, 0)
@@ -97,14 +91,22 @@ module Utils
         MatrixUtils.multiply($COORDSYS.peek(), temp)
         Draw.push_polygon_matrix(temp)
       when "sphere"
-        args = file.gets.chomp.split(" ")
+        if line[1].class == String
+          args = line[2..5]
+        else
+          args = line[1..4]
+        end
         for i in (0...4); args[i] = args[i].to_f end
         puts "With arguments: "  + args.to_s if $DEBUGGING
         temp = Matrix.new(4, 0)
         Draw.sphere(args[0], args[1], args[2], args[3], temp)
         Draw.push_polygon_matrix(MatrixUtils.multiply($COORDSYS.peek(), temp))
       when "torus"
-        args = file.gets.chomp.split(" ")
+        if line[1].class == String
+          args = line[2..6]
+        else
+          args = line[1..5]
+        end
         for i in (0...5); args[i] = args[i].to_f end
         puts "With arguments: "  + args.to_s if $DEBUGGING
         temp = Matrix.new(4, 0)
@@ -114,19 +116,19 @@ module Utils
       when "clear"
         $SCREEN = Screen.new($RESOLUTION)
       when "scale"
-        args = file.gets.chomp.split(" ")
+        args = line[1..3]
         for i in (0...3); args[i] = args[i].to_f end
         puts "With arguments: "  + args.to_s if $DEBUGGING
         scale = MatrixUtils.dilation(args[0], args[1], args[2])
         $COORDSYS.modify_top(scale);
       when "move"
-        args = file.gets.chomp.split(" ")
+        args = line[1..3]
         for i in (0...3); args[i] = args[i].to_f end
         puts "With arguments: "  + args.to_s if $DEBUGGING
         move = MatrixUtils.translation(args[0], args[1], args[2])
         $COORDSYS.modify_top(move);
       when "rotate"
-        args = file.gets.chomp.split(" ")
+        args = line[1..2]
         puts "With arguments: "  + args.to_s if $DEBUGGING
         rotate = MatrixUtils.rotation(args[0], args[1].to_f)
         $COORDSYS.modify_top(rotate);
@@ -137,15 +139,40 @@ module Utils
       when "display"
         display();
       when "save"
-        arg = file.gets.chomp
-        write_out(file: arg)
+        write_out(file: line[1]+line[2])
       when "quit", "exit"
         exit 0
+
+      # OLD FUNCTIONS: (NOW UNUSABLE)
+
+      # when "circle"
+      #   args = file.gets.chomp.split(" ")
+      #   for i in (0...4); args[i] = args[i].to_f end
+      #   puts "With arguments: "  + args.to_s if $DEBUGGING
+      #   temp = Matrix.new(4, 0)
+      #   Draw.circle(args[0], args[1], args[2], args[3], temp)
+      #   MatrixUtils.multiply($COORDSYS.peek(), temp)
+      #   Draw.push_edge_matrix(temp)
+      # when "hermite"
+      #   args = file.gets.chomp.split(" ")
+      #   for i in (0...8); args[i] = args[i].to_f end
+      #   puts "With arguments: "  + args.to_s if $DEBUGGING
+      #   temp = Matrix.new(4, 0)
+      #   Draw.hermite(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], temp)
+      #   MatrixUtils.multiply($COORDSYS.peek(), temp)
+      #   Draw.push_edge_matrix(temp)
+      # when "bezier"
+      #   args = file.gets.chomp.split(" ")
+      #   for i in (0...8); args[i] = args[i].to_f end
+      #   puts "With arguments: "  + args.to_s if $DEBUGGING
+      #   temp = Matrix.new(4, 0)
+      #   Draw.bezier(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], temp)
+      #   MatrixUtils.multiply($COORDSYS.peek(), temp)
+      #   Draw.push_edge_matrix(temp)
       else
-        puts "ERROR: Unrecognized command \"" + line + '"'
+        puts "ERROR: Unrecognized command: " + line.to_s
       end
     end
-    file.close
   end
 
 end

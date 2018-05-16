@@ -12,7 +12,7 @@ $TAU = PI*2
 
 # Changeable
 $RESOLUTION = 500 # All images are squares
-$DEBUGGING = false
+$DEBUGGING = true
 $BACKGROUND_COLOR = [255, 255, 235] # [r, g, b]
 $DRAW_COLOR = [0, 0, 0] # for 2D drawing
 $INFILE = "script.mdl"
@@ -38,6 +38,11 @@ $Ks = [0.5, 0.5, 0.5] #Constant of specular
 
 if ARGV[0]
   $INFILE = ARGV[0]
+else
+  puts "Please specify a file: (leave blank for \"script.mdl\")"
+  got = gets.chomp
+  $INFILE = got if got != ""
 end
+
 
 Utils.parse_file()

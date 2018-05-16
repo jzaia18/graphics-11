@@ -32,15 +32,13 @@ def run(filename):
     ident( tmp )
 
     stack = [ [x[:] for x in tmp] ]
-    tmp = []
-    step_3d = 20
 
     p = mdl.parseFile(filename)
 
     if p:
-        (commands, symbols) = p
-        f = open('../__COMPYLED_CODE__', 'w')
+        f = open('__COMPYLED_CODE__', 'w')
         f.write(str(p))
+        f.close()
     else:
         print "Parsing failed."
         return
